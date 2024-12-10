@@ -1,5 +1,5 @@
 """
-Consigna.
+Consigna
 Para tu primera entrega, te proponemos que crees un programa que permita emular el registro y almacenamiento de usuarios en una base de datos. 
 Hazlo utilizando el concepto de funciones, diccionarios, bucles y condicionales.
 
