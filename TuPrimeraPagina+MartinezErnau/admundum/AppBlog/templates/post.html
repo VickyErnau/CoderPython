@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table class="table">
+    <tr>
+        <th>Titulo</th>
+        <th>Resúmen</th>
+        <th>Texto</th>
+        <th>Autor</th>
+        <th>Categoría</th>
+    </tr>
+    {% for post in posts %}
+        <tr>
+            <td> {{ post.titulo }} </td>
+            <td> {{ post.resumen }} </td>
+            <td> {{ post.texto }} </td>
+            <td> {{ post.autor.nombre }} </td>
+            <td> {{ post.categoria.nombre }} </td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endblock content %}
