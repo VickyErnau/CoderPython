@@ -1,21 +1,32 @@
 * Se mencionan debajo las URLs que pueden ser utilizadas. 
+  Hay dos aplicaciones: 
+	- AppBlog que contiene el sitio principal.
+	- AppAccount que contiene lo referido al comportamiento de usuarios.
 
 * Accediendo al inicio hay una barra de navegación con todos los links necesarios
   por lo que no debería ser necesario tener que ingresar a las distintas urls de manera directa.
 
-* El buscador está implementado únicamente para los autores.
+URLs AppBlog
 
-* En el caso de dar de alta Categorías y/o Autores y querer utilizarlas para crear nuevos posteos, es necesario bajar y volver a levantar el servidor ya que no está implementado el refresh automático.
+    path("", inicio, name="inicio"),
+    path("inicio/", inicio, name="inicio"),
+    path("about/", about, name="about"),
+    path("create-page/", post_create, name="post_create"),
+    path("update-page/<int:id>/", post_update, name="post_update"),
+    path("update-page/", post_update, name="post_update"),
+    path('pages/', PosteoListView.as_view(), name='posts'),
+    path("page_detail/<int:pk>/", PosteoDetailView.as_view(), name="post_detail"),
+    path("delete_page/<int:pk>/", PosteoDeleteView.as_view(), name="post_delete"),
 
-URLs
+URLs AppAccount
 
-path("inicio/", inicio, name="inicio"),
-path("posteo-nuevo/", posteo_form, name="posteo_form"),
-path("posts/", posteo_index, name="posteo_index"),
-path("categoria-nueva/", categoria_form, name="categoria_form"),
-path("categorias/", categoria_index, name="categoria_index"),
-path("autor-nuevo/", autor_form, name="autor_form"),
-path("autores/", autor_buscar, name="autor_index"),
-
+    path('registration/', register_user, name='register_user'),
+    path('update_user/', update_user, name='update_user'),
+    path('perfil/', ProfileView.as_view(), name='profile_user'),
+    path('logout/', logout_user, name='logout'),
+    path('password_changed/', password_changed, name='password_changed'),
+    path('update_password/', PassChangeView.as_view(template_name='registration/update_password.html'), name='update_password'),
+    path('error/', error, name='error'),
+    path('admin/', modulo_admin, name='modulo_admin'),
 
 

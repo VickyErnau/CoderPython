@@ -1,106 +1,106 @@
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
-from .models import Posteo, Categoria,Autor
-from .forms import CategoriaForm, AutorForm, PosteoForm
+from .models import Posteo
+from .forms import PosteoForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView, DetailView, DeleteView
+from django.urls import reverse_lazy
+from django.db.models.functions import Lower
 
 # Create your views here.
 
 def inicio(request):
     return render(request, "index.html")
 
-#---------------------------------
-# CATEGORIAS
-#---------------------------------
+def error(request):
+    return render(request, "error.html")
 
-def categoria_form(request):
-    if request.method == "POST":
-        form = CategoriaForm(request.POST)
-        
-        if form.is_valid():
-            categoria = Categoria(nombre=form.cleaned_data['nombre'])
-            categoria.save()
-            return redirect('inicio')
-        else:
-            print("Operación Incorrecta!")
-
-    form = CategoriaForm()
-    return render(request, 'categoria_form.html', {'form':form})
-
-def categoria_index(request):
-    categorias = Categoria.objects.all().order_by("nombre")
-    context = {
-        "categorias": categorias,
-    }
-    return render(request, "categoria.html", context)
 
 #---------------------------------
-#AUTORES
+# ABOUT ME
 #---------------------------------
 
-def autor_form(request):
-    if request.method == "POST":
-        form = AutorForm(request.POST)
-        
-        if form.is_valid():
-            autor = Autor(nombre=form.cleaned_data['nombre'],apellido=form.cleaned_data['apellido']
-                        ,nick=form.cleaned_data['nick'],status=form.cleaned_data['status'])
-            autor.save()
-            return redirect('inicio')
-        else:
-            print("Operación Incorrecta!")
+def about(request):
+    return render(request, "about.html")
 
-    form = AutorForm()
-    return render(request, 'autor_form.html', {'form':form})
 
-def autor_index(request):
-    autores = Autor.objects.all().order_by("nombre")
-    context = {
-        "autores": autores,
-    }
-    return render(request, "autor.html", context)
-
-def autor_buscar(request):
-    query = request.GET.get("q")
-    autores = Autor.objects.all()
-    
-    if query:
-        autores = Autor.objects.filter(
-            Q(nombre__icontains = query) |
-            Q(apellido__icontains = query) |
-            Q(nick__icontains = query) 
-        ).distinct()
-    
-    return render(request,'autor.html',{'autores': autores})
-            
 #---------------------------------
 #POSTEOS
 #---------------------------------
 
-def posteo_form(request):
+def post_create(request):
     if request.method == "POST":
-        form = PosteoForm(request.POST)
-        print(f'{form}')
+        form = PosteoForm(request.POST, request.FILES)
+        
         if form.is_valid():
 
-            autor_selected = Autor.objects.get(id=form.cleaned_data['autor'])
-            categoria_selected = Categoria.objects.get(id=form.cleaned_data['categoria'])
+            #autor_selected = Autor.objects.get(id=form.cleaned_data['autor'])
 
             posteo = Posteo(titulo=form.cleaned_data['titulo'],resumen=form.cleaned_data['resumen']
-                        ,texto=form.cleaned_data['texto'], autor=autor_selected 
-                        ,categoria=categoria_selected) 
+                        ,texto=form.cleaned_data['texto'], imagen=form.cleaned_data['imagen']) #, autor=autor_selected) 
             posteo.save()
-            return redirect('inicio')
+            return redirect('posts')
         else:
             print("Operación Incorrecta!")
 
     form = PosteoForm()
-    return render(request, 'posteo_form.html', {'form':form})
+    return render(request, 'post_create.html', {'form':form})
 
-def posteo_index(request):
-    posts = Posteo.objects.all().order_by("-create_date")
-    context = {
-        "posts": posts,
-    }
-    return render(request, "post.html", context)
+@login_required
+def post_update(request, id):
+    
+    try:
+        post = get_object_or_404(Posteo, id=id)
 
+        form = {
+            "post": PosteoForm(instance=post) 
+        }
+
+        if request.method == "POST":
+            formulario = PosteoForm(request.POST, instance=post)
+
+            if formulario.is_valid():
+                formulario.save()
+                return redirect('posts')
+            else:
+                form["post"] = formulario
+
+        return render(request, 'post_update.html', form)
+    except:
+        return render(request, 'no_page.html')
+
+class PosteoListView(ListView):
+    model = Posteo
+    template_name = 'posts.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q')
+
+        if query:
+            queryset = queryset.annotate(
+            titulo_lower=Lower('titulo'),
+            resumen_lower=Lower('resumen'),
+            texto_lower=Lower('texto')
+            ).filter(
+                (Q(titulo_lower__icontains=query.lower())) |
+                (Q(resumen_lower__icontains=query.lower())) |
+                (Q(texto_lower__icontains=query.lower()))
+            )
+        return queryset
+    
+
+class PosteoDetailView(DetailView):
+    model = Posteo
+    template_name = 'post_detail.html'
+    context_object_name = 'post'
+
+class PosteoDeleteView(LoginRequiredMixin,DeleteView):
+    model = Posteo
+    template_name = 'post_delete.html'
+    success_url = reverse_lazy('posts')
+    raise_exception = False

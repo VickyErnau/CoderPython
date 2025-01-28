@@ -1,13 +1,22 @@
 from django.urls import path
-from .views import inicio, posteo_form, autor_form, categoria_form, posteo_index, categoria_index
-from .views import autor_buscar, autor_index
-
+from .views import (
+    inicio,
+    post_create,
+    about,
+    post_update,
+    PosteoListView,
+    PosteoDetailView,
+    PosteoDeleteView
+)
 urlpatterns = [
+    path("", inicio, name="inicio"),
     path("inicio/", inicio, name="inicio"),
-    path("posteo-nuevo/", posteo_form, name="posteo_form"),
-    path("posts/", posteo_index, name="posteo_index"),
-    path("categoria-nueva/", categoria_form, name="categoria_form"),
-    path("categorias/", categoria_index, name="categoria_index"),
-    path("autor-nuevo/", autor_form, name="autor_form"),
-    path("autores/", autor_buscar, name="autor_index"),
+    path("about/", about, name="about"),
+    path("create-page/", post_create, name="post_create"),
+    path("update-page/<int:id>/", post_update, name="post_update"),
+    path("update-page/", post_update, name="post_update"),
+    path('pages/', PosteoListView.as_view(), name='posts'),
+    path("page_detail/<int:pk>/", PosteoDetailView.as_view(), name="post_detail"),
+    path("delete_page/<int:pk>/", PosteoDeleteView.as_view(), name="post_delete"),
+
 ]
